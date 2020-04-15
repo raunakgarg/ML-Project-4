@@ -1,0 +1,318 @@
+# ### Implementation Phase
+# 
+# #### Image Upload 
+
+# In[1]:
+
+
+# installing the boto3 package
+import boto3
+import json
+
+
+# In[11]:
+
+
+# importing boto3 library to access AWS services in Python
+s3 = boto3.client("s3")
+
+
+# In[12]:
+
+
+# Specifying the attributes for file upload
+buckets = s3.list_buckets()
+
+
+# In[13]:
+
+
+buckets
+
+
+# In[4]:
+
+
+# initiating the S3 client
+for buckets1 in buckets['Buckets']:
+    print(buckets1["Name"])
+
+
+# In[13]:
+
+
+# Retrieve the list of existing buckets
+buckets
+
+
+# In[ ]:
+
+
+# List the bucket names
+
+
+# In[ ]:
+
+
+# Uploading the file on S3
+
+
+# In[5]:
+
+
+# Retrieving the list of objects
+file_name = 'bezos_demo_image.jpg'
+bucket = 'upgradraunakgbucket1'
+object_name = 'bezos_demo_image.jpg'
+
+
+# In[21]:
+
+
+s3.upload_file(file_name,bucket,object_name)
+
+
+# In[27]:
+
+
+response = s3.list_objects(Bucket='upgradraunakgbucket1')
+
+for buck in response['Contents']:
+    print(buck['Key'],buck['Size'])
+
+
+# In[24]:
+
+
+
+response
+
+
+# #### Lamda function - Creation
+# 
+# #Creating the handler file in the folder lambda (to be performed in separate file)
+
+# In[ ]:
+
+
+# Installing boto3 in a target folder
+import json
+import boto3
+def lambda_handler(event,context):
+    client = boto3.client('rekognition')
+    response = client.recognize_celebrities(
+        Image={
+                    'S3Object':{
+                        'Bucket' : event['bucket'],
+                        'Name' : event['object_name']
+                    }
+        
+    })
+    return (response['CelebrityFaces'][0]['Name'])
+
+
+
+
+# In[49]:
+
+
+import json
+import boto3
+
+def lambda_handler(event,context):
+    client = boto3.client('rekognition')
+    response = client.recognize_celebrities(
+                   Image={
+                    'S3Object':{
+                        'Bucket' : event['bucket'],
+                        'Name' : event['object_name']
+                    }
+        
+    })
+    return (response['CelebrityFaces'][0]['Name'])
+
+
+# In[9]:
+
+
+# Zipping the files together
+
+get_ipython().system('pip3 install pip --upgrade')
+
+
+# In[6]:
+
+
+client = boto3.client('comprehend')
+
+
+# In[9]:
+
+
+client.get_paginatoret()
+
+
+# In[51]:
+
+
+# Creating the function
+get_ipython().system('pip3 install --target ./lambda/boto3 boto3')
+
+
+# #### Lamda function - Invoke AWS lambda
+
+# In[27]:
+
+
+from __future__ import print_function
+
+import os
+from datetime import datetime
+
+
+# In[57]:
+
+
+get_ipython().run_line_magic('cd', '..')
+
+
+# In[53]:
+
+
+#!zip -r9 ../celebrity_detector.zip .
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+# Storing and printing the results in a variable
+
+get_ipython().run_line_magic('pwd', '')
+
+
+# #### Database Operations
+
+# In[58]:
+
+
+# lambda function
+
+get_ipython().system('aws lambda create-function --function-name celebrity_detector --runtime python3.6 --zip-file fileb://celebrity_detector.zip --handler handler.lambda_handler --role arn:aws:iam::804747688262:role/csdlambdarole --region us-east-1')
+
+
+# In[16]:
+
+
+# Importing the library
+
+iam = boto3.client('lambda', region_name = 'us-east-1')
+
+
+# In[20]:
+
+
+
+import boto3
+response=iam.invoke(
+FunctionName = 'celebrity_detector',
+InvocationType = 'RequestResponse',
+LogType = 'Tail',
+Payload = json.dumps({"bucket":"upgradraunakgbucket1","object_name":"bezos_demo_image.jpg"})
+
+
+)
+celebrity_name = response['Payload'].read().decode('utf8')
+
+
+# In[21]:
+
+
+response
+
+
+# In[22]:
+
+
+print(celebrity_name)
+
+
+# In[6]:
+
+
+# Defining the cursor object
+(response['CelebrityFaces'][0]['Name'])
+
+
+# In[3]:
+
+
+get_ipython().system('pip3 install mysql-connector --user')
+
+
+# In[1]:
+
+
+import json
+import boto3
+
+
+# In[5]:
+
+
+import mysql.connector
+
+dbc = mysql.connector.connect(
+    host = "test-instance.cbd574qfiu7z.us-east-1.rds.amazonaws.com",
+    user = "master",
+    passwd = "casestudy123",
+    port = 3306,
+    db = "celebrities"
+)
+
+
+# In[6]:
+
+
+cur = dbc.cursor()
+
+
+# In[9]:
+
+
+cur.execute("CREATE TABLE celebrities (image VARCHAR(255),celebrity VARCHAR(255))")
+
+
+# In[23]:
+
+
+# Creating the table
+sql = "INSERT INTO celebrities(image,celebrity) VALUES (%s, %s)"
+val = (file_name,celebrity_name)
+cur.execute(sql,val)
+
+
+# In[25]:
+
+
+# Inserting the values into columns
+cur.execute("SELECT image,celebrity FROM celebrities")
+result = cur.fetchall()
+
+
+# In[26]:
+
+
+# Read the stored values from RDS
+print(result)
+
+
+# In[ ]:
+
+
+# Displaying the results
